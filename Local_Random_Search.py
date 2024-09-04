@@ -59,7 +59,7 @@ def fat(n):
 
 
 
-p = 6
+p = 8
 
 cidades = np.random.rand(p,2)
 
@@ -110,50 +110,50 @@ plt.show()
 
 
 
-import numpy as np
-import matplotlib.pyplot as plt
+# import numpy as np
+# import matplotlib.pyplot as plt
 
-#Pertubacao do otimo
-def pertub(x,xl,xu,sig):
-    x_cand = x + np.random.normal(loc=0,scale=sig)
-    for i in range(x.shape[0]):
-        if(x_cand[i]<xl[i]):
-            x_cand[i] = xl[i]
-        if(x_cand[i]> xu[i]):
-            x_cand[i] = xu[i]
-    return x_cand
+# #Pertubacao do otimo
+# def pertub(x,xl,xu,sig):
+#     x_cand = x + np.random.normal(loc=0,scale=sig)
+#     for i in range(x.shape[0]):
+#         if(x_cand[i]<xl[i]):
+#             x_cand[i] = xl[i]
+#         if(x_cand[i]> xu[i]):
+#             x_cand[i] = xu[i]
+#     return x_cand
 
-def f(x):
-    pass
+# def f(x):
+#     pass
 
-#Maximo de interacoes
-max_int = 10000
+# #Maximo de interacoes
+# max_int = 10000
 
-#Restricoess
-x_l = [-1, -1]
-x_u = [1, 1]
+# #Restricoess
+# x_l = [-1, -1]
+# x_u = [1, 1]
 
-#X otimo aleatorio uniforme
-x_opt = np.random.uniform(x_l, x_u)
+# #X otimo aleatorio uniforme
+# x_opt = np.random.uniform(x_l, x_u)
 
-f_opt = f(x_opt)
+# f_opt = f(x_opt)
 
-#X candidato aleatorio uniforme
-x_cand = np.random.uniform(x_l, x_u)
+# #X candidato aleatorio uniforme
+# x_cand = np.random.uniform(x_l, x_u)
 
-#Valor de abertura dos vizinhos
-sigma = 0.1
+# #Valor de abertura dos vizinhos
+# sigma = 0.1
 
-# Valores para o teste
-x_axis = np.linspace(-2,5,1000)
-# plt.plot(x_axis,f(x_axis))
+# # Valores para o teste
+# x_axis = np.linspace(-2,5,1000)
+# # plt.plot(x_axis,f(x_axis))
 
-i=0
-while i < max_int:
-    x_cand = pertub(x_opt, x_l, x_u, sigma)
-    f_cand = f(x_cand)
-    if f_cand > f_opt:
-        x_opt = x_cand
-        f_opt = f_cand
-        break
-    i+=1
+# i=0
+# while i < max_int:
+#     x_cand = pertub(x_opt, x_l, x_u, sigma)
+#     f_cand = f(x_cand)
+#     if f_cand > f_opt:
+#         x_opt = x_cand
+#         f_opt = f_cand
+#         break
+#     i+=1

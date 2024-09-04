@@ -2,6 +2,39 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 
+def plot_chessboard(solutions):
+    n = 8
+    
+    board_template = np.zeros((n, n, 3))  # Criacao do RGB do tabuleiro, padrao eh preto e branco
+
+    # Preenche o tabuleiro com o padrão de xadrez
+    for i in range(n):
+        for j in range(n):
+            if (i + j) % 2 == 0:
+                board_template[i, j] = [1, 1, 1]  # W
+            else:
+                board_template[i, j] = [0, 0, 0]  # K
+
+    for solution in solutions:
+        board = board_template.copy()
+
+        
+        for i in range(n):
+            board[solution[i], i] = [1, 0, 0]  # R
+        
+        plt.imshow(board)
+        plt.xticks(np.arange(n))
+        plt.yticks(np.arange(n))
+        plt.gca().set_xticklabels([])
+        plt.gca().set_yticklabels([])
+
+        plt.draw()  # Atualiza o gráfico
+        plt.pause(2)
+        plt.clf()  # Limpa a figura para o próximo gráfico
+
+    plt.show()
+
+# Necessita de otimizacao
 # def perturb(x, xl, xu, sig):
 #     x_cand = x + np.random.normal(loc=0,scale=sig, size=x.shape)
 #     x_cand = np.round(x_cand).astype(int)
@@ -38,8 +71,6 @@ def perturb(x):
         x[i1], x[i2] = x[i2], x[i1]
         return x
 
-
-# 2.1
 def h(x):
     n = len(x)
     pares_atacantes = 0
@@ -52,7 +83,6 @@ def h(x):
 
     return pares_atacantes
 
-# 2.1
 def f(x):
     return 28 - h(x)
 
@@ -66,11 +96,8 @@ def isNotInside(value, list):
 x_l = 0
 x_u = 7
 
-# 2.1
-x_opt = np.random.uniform(low=x_l, high=x_u, size=8)
-x_opt = np.round(x_opt).astype(int)
-
-# 2.1
+# Arredonda o valor da distribuicao uniforme de 0 a 7 e garente valores inteiros.
+x_opt = np.round(np.random.uniform(low=x_l, high=x_u, size=8)).astype(int)
 f_opt = f(x_opt)
 
 # Ideia do Gui
@@ -79,17 +106,14 @@ f_opt = f(x_opt)
 
 it_max  = 1000000
 
-# 2.2
 T = 100
 sigma = 1
 
 i = 0
 xs_otimos = []
 
-# 2.6
 inicio = time.time()
 
-# 2.5
 while i < it_max and len(xs_otimos) < 92:
     # x_cand = perturb(x_opt,x_l,x_u,sigma)
     # f_cand = f(x_cand)
@@ -105,8 +129,6 @@ while i < it_max and len(xs_otimos) < 92:
         x_opt = x_cand
         f_opt = f_cand
 
-    #2.3
-    #Escalonamento
     i+=1
     T*=.79
     
@@ -123,15 +145,11 @@ while i < it_max and len(xs_otimos) < 92:
         # i = 0
         T = 100
 
-# 2.6
 fim = time.time()
 
-# 2.6
 tempo_execucao = fim - inicio
 print(f"Tempo de execução: {tempo_execucao} segundos")
 
-# COMO PLOTA???
-plt.plot(xs_otimos)
-plt.show()
+plot_chessboard(xs_otimos)
 
 bp = 1
