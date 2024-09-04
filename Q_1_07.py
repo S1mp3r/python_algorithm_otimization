@@ -53,7 +53,7 @@ while i < max_int and melhoria:
             x_opt = x_cand
             f_opt = f_cand
             melhoria = True
-            ax.scatter(x_opt[0], x_opt[1], f_opt, color='r', marker='x')
+            ax.scatter(x_opt[0], x_opt[1], f_opt)
             break
     
     i += 1

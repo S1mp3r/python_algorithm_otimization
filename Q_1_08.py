@@ -28,7 +28,7 @@ max_viz = 20
 melhoria = True
 i = 0
 
-x_opt = np.random.uniform(low=x_l, high=x_u, size=2)
+x_opt = np.random.uniform(low=-200, high=21, size=2)
 f_opt = f(x_opt[0], x_opt[1])
 
 # 3D
@@ -53,7 +53,7 @@ while i < max_int and melhoria:
             x_opt = x_cand
             f_opt = f_cand
             melhoria = True
-            ax.scatter(x_opt[0], x_opt[1], f_opt, color='r', marker='x')
+            ax.scatter(x_opt[0], x_opt[1], f_opt)
             break
     
     i += 1
