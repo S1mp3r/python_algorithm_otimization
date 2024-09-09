@@ -29,7 +29,7 @@ def plot_chessboard(solutions):
         plt.gca().set_yticklabels([])
 
         plt.draw()  # Atualiza o gráfico
-        plt.pause(0.5)
+        plt.pause(2)
         plt.clf()  # Limpa a figura para o próximo gráfico
 
     plt.show()
@@ -97,7 +97,7 @@ x_l = 0
 x_u = 7
 
 # Arredonda o valor da distribuicao uniforme de 0 a 7 e garente valores inteiros.
-x_opt = np.random.uniform(low=x_l, high=x_u, size=8).astype(int)
+x_opt = np.round(np.random.uniform(low=x_l, high=x_u, size=8)).astype(int)
 f_opt = f(x_opt)
 
 # Ideia do Gui
@@ -130,7 +130,9 @@ while i < it_max and len(xs_otimos) < 92:
         f_opt = f_cand
 
     i+=1
-    T*=.79
+    T *= .79
+    # T = (T / (1.79 * np.sqrt(T)))
+    # T = T - ((100 - T) / T)
     
     if f_opt == 28:
         if isNotInside(x_opt, xs_otimos):
