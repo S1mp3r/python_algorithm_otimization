@@ -1,159 +1,96 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-
-def perturb(x):
-    i1,i2 = np.random.permutation(len(x))[0:2]
-    x[i1],x[i2] = x[i2],x[i1]
+def LRS_init_(rounds, limit_1, limit_2, limit_3, limit_4, f_apt, minimization):
     
-    return x
-    return np.random.permutation(len(x))
+    def f(x1, x2):
+        return f_apt(x1, x2)
 
-def f(cidades,x):
-    s = 0
-    for i in range(len(x)):
-        p1 = cidades[x[i],:]
-        p2 = cidades[x[(i+1)%len(x)],:]
-        # s = np.sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2)
-        s += np.linalg.norm(p1-p2)
-    return s
+    limites = np.array(
+            [[limit_1, limit_2],
+            [limit_3, limit_4]]
+        )
 
-def plot_inicial(cidades,x):
-    _,ax = plt.subplots()
-    ax.scatter(cidades[:,0],cidades[:,1])
-    lines = []
-    for i in range(len(x)):
-        p1 = cidades[x[i],:]
-        p2 = cidades[x[(i+1)%len(x)],:]
-        if i == 0:
-            l = ax.plot([p1[0],p2[0]],[p1[1],p2[1]],color='g')
-        elif i == len(x)-1:
-            l = ax.plot([p1[0],p2[0]],[p1[1],p2[1]],color='r')
-        else:
-            l = ax.plot([p1[0],p2[0]],[p1[1],p2[1]],color='k')
-        lines.append(l[0])
+    x_opt = np.array([
+                    np.random.uniform(limites[0,0], limites[0,1]),
+                    np.random.uniform(limites[1,0], limites[1,1])
+                ])
+    f_opt = f(x_opt[0], x_opt[1])
+    count = 0
+    last_val = f_opt
+    solucoes = []
+    e = .1
+    max_int = 10000
 
-    return ax,lines
+    def LRS(x,limites):
+        l1, l2 = limites
+        x_cand = np.clip(x + np.random.normal(0, e), l1, l2)
+        return x_cand
 
+    def perturb_LRS(x):
+            return np.array([LRS(x, l) for x, l in zip(x, limites)])
 
-def atualiza_plot(cidades,x,lines,ax):
-    plt.pause(.5)
-    for line in lines:
-        line.remove()
+    # 3D
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
 
-    for i in range(len(x)):
-        p1 = cidades[x[i],:]
-        p2 = cidades[x[(i+1)%len(x)],:]
-        if i == 0:
-            l = ax.plot([p1[0],p2[0]],[p1[1],p2[1]],color='g')
-        elif i == len(x)-1:
-            l = ax.plot([p1[0],p2[0]],[p1[1],p2[1]],color='r')
-        else:
-            l = ax.plot([p1[0],p2[0]],[p1[1],p2[1]],color='k')
-        lines[i] = l[0]
+    x1_vals = np.linspace(limites[0,0], limites[0,1], 100)
+    x2_vals = np.linspace(limites[0,0], limites[0,1], 100)
+    X1, X2 = np.meshgrid(x1_vals, x2_vals)
 
-def fat(n):
-    return 1 if n<=1 else n*fat(n-1)
+    ax.plot_surface(X1, X2, f(X1, X2), rstride=10, cstride=10, cmap='viridis', alpha=0.6)
+    # ax.plot_surface(X1, X2, f(X1, X2), cmap='viridis', alpha=0.6)
+    # 3D
 
-    
+    rodadas = 0
+    while rodadas < rounds:
+        x_opt = np.array ([
+                            np.random.uniform(limites[0,0], limites[0,1]),
+                            np.random.uniform(limites[1,0], limites[1,1])
+                            ])
+        f_opt = f(x_opt[0], x_opt[1])
+        
+        i = 0
+        count = 0
+        last_val = f_opt
+        while i < max_int:
 
+            x_cand = perturb_LRS(x_opt)
+            f_cand = f(x_cand[0], x_cand[1])
+            
+            if minimization:
+                if f_cand < f_opt:
+                    x_opt = x_cand
+                    f_opt = f_cand
+            else:
+                if f_cand > f_opt:
+                    x_opt = x_cand
+                    f_opt = f_cand
 
+            if count == 20:
+                if np.abs(last_val - f_opt) < 0.000000001:
+                    break
+            else:
+                last_val = f_opt
+                count = 0
+            
+            count += 1
+            i += 1
+        solucoes.append(x_opt)
+        ax.scatter(x_opt[0], x_opt[1], f_opt, color='r', s=100, edgecolor='k', zorder=5)
+        rodadas += 1
 
-p = 8
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('z')
+    ax.set_title('LRS f(x1, x2)')
+   
+    values, counts = np.unique(solucoes, return_counts=True)
 
-cidades = np.random.rand(p,2)
+    index = np.argmax(counts)
 
-solucoes = np.random.permutation(p).reshape(1,p)
+    moda = values[index]
 
-i = 1
-max_sol = fat(p)
-avaliacoes = [f(cidades,solucoes[0,:])]
+    plt.show()
 
-while i < max_sol:
-
-    x = np.random.permutation(p).reshape(1,p)
-
-    if not np.any(np.all(x == solucoes,axis=1)):
-        solucoes = np.concat((
-            solucoes,x
-        ))
-        avaliacoes.append(f(cidades,x[0,:]))
-        i+=1
-
-# plt.stem(avaliacoes)
-# plt.show()
-avaliacoes = np.array(avaliacoes)
-
-x_opt = np.random.permutation(p)
-
-f_opt = f(cidades,x_opt)
-ax,lines = plot_inicial(cidades,x_opt)
-
-max_it = 100000
-
-for i in range(max_it):
-    x_cand = perturb(np.copy(x_opt))
-    f_cand = f(cidades,x_cand)    
-    if f_cand < f_opt:
-        x_opt = x_cand
-        f_opt = f_cand
-        atualiza_plot(cidades,x_opt,lines,ax)
-
-
-plt.show()
-
-
-
-
-
-
-
-
-
-# import numpy as np
-# import matplotlib.pyplot as plt
-
-# #Pertubacao do otimo
-# def pertub(x,xl,xu,sig):
-#     x_cand = x + np.random.normal(loc=0,scale=sig)
-#     for i in range(x.shape[0]):
-#         if(x_cand[i]<xl[i]):
-#             x_cand[i] = xl[i]
-#         if(x_cand[i]> xu[i]):
-#             x_cand[i] = xu[i]
-#     return x_cand
-
-# def f(x):
-#     pass
-
-# #Maximo de interacoes
-# max_int = 10000
-
-# #Restricoess
-# x_l = [-1, -1]
-# x_u = [1, 1]
-
-# #X otimo aleatorio uniforme
-# x_opt = np.random.uniform(x_l, x_u)
-
-# f_opt = f(x_opt)
-
-# #X candidato aleatorio uniforme
-# x_cand = np.random.uniform(x_l, x_u)
-
-# #Valor de abertura dos vizinhos
-# sigma = 0.1
-
-# # Valores para o teste
-# x_axis = np.linspace(-2,5,1000)
-# # plt.plot(x_axis,f(x_axis))
-
-# i=0
-# while i < max_int:
-#     x_cand = pertub(x_opt, x_l, x_u, sigma)
-#     f_cand = f(x_cand)
-#     if f_cand > f_opt:
-#         x_opt = x_cand
-#         f_opt = f_cand
-#         break
-#     i+=1
+    bp = 1 
