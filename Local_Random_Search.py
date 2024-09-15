@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from collections import Counter
 
 def LRS_init_(rounds, limit_1, limit_2, limit_3, limit_4, f_apt, minimization):
     
@@ -21,6 +22,7 @@ def LRS_init_(rounds, limit_1, limit_2, limit_3, limit_4, f_apt, minimization):
     solucoes = []
     e = .1
     max_int = 10000
+    tolerance = 1e-6
 
     def LRS(x,limites):
         l1, l2 = limites
@@ -68,7 +70,7 @@ def LRS_init_(rounds, limit_1, limit_2, limit_3, limit_4, f_apt, minimization):
                     f_opt = f_cand
 
             if count == 20:
-                if np.abs(last_val - f_opt) < 0.000000001:
+                if np.abs(last_val - f_opt) < tolerance:
                     break
             else:
                 last_val = f_opt
@@ -85,11 +87,7 @@ def LRS_init_(rounds, limit_1, limit_2, limit_3, limit_4, f_apt, minimization):
     ax.set_zlabel('z')
     ax.set_title('LRS f(x1, x2)')
    
-    values, counts = np.unique(solucoes, return_counts=True)
-
-    index = np.argmax(counts)
-
-    moda = values[index]
+    modal_f_opt, modal_count = Counter(solucoes).most_common(1)[0]
 
     plt.show()
 

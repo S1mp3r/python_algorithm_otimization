@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from collections import Counter
 
 def hill_Climbing_init_(rounds, limit_1, limit_2, limit_3, limit_4, f_apt, minimization):
 
@@ -28,6 +29,7 @@ def hill_Climbing_init_(rounds, limit_1, limit_2, limit_3, limit_4, f_apt, minim
     melhoria = True
     i = 0
     rodadas = 0
+    tolerance = 1e-6
 
     # 3D
     fig = plt.figure()
@@ -73,7 +75,7 @@ def hill_Climbing_init_(rounds, limit_1, limit_2, limit_3, limit_4, f_apt, minim
                         break
             
             if count == 20:
-                if np.abs(last_val - f_opt) < 0.000000001:
+                if np.abs(last_val - f_opt) < tolerance:
                     break
             else:
                 last_val = f_opt
@@ -81,7 +83,7 @@ def hill_Climbing_init_(rounds, limit_1, limit_2, limit_3, limit_4, f_apt, minim
             
             count += 1
             i += 1
-        solucoes.append(x_opt)
+        solucoes.append(f_opt)
         rodadas += 1
 
     # Plot com marcacao
@@ -93,11 +95,7 @@ def hill_Climbing_init_(rounds, limit_1, limit_2, limit_3, limit_4, f_apt, minim
     ax.set_zlabel('z')
     ax.set_title('Hill Climbing f(x1, x2)')
 
-    values, counts = np.unique(solucoes, return_counts=True)
-
-    index = np.argmax(counts)
-
-    moda = values[index]
+    modal_f_opt, modal_count = Counter(solucoes).most_common(1)[0]
 
     plt.show()
 
