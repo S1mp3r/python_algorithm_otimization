@@ -78,7 +78,7 @@ def LRS_init_(rounds, limit_1, limit_2, limit_3, limit_4, f_apt, minimization):
             
             count += 1
             i += 1
-        solucoes.append(x_opt)
+        solucoes.append(round(f_opt, 3))
         ax.scatter(x_opt[0], x_opt[1], f_opt, color='r', s=100, edgecolor='k', zorder=5)
         rodadas += 1
 
