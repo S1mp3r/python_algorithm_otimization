@@ -150,15 +150,13 @@ def algoritmo_genetico_Canonico(N=100, p=20, nd=4, max_generations=100, mutation
 
 
 
-def comparar_algoritmos(num_rodadas=100):
+def comparar_algoritmos(num_rodadas=10):
     resultados_alg1 = []
     resultados_alg2 = []
 
     for _ in range(num_rodadas):
         resultados_alg1.append(algoritmo_genetico_Nao_Canonico())
         resultados_alg2.append(algoritmo_genetico_Canonico())
-
-
 
     def calcular_metricas(resultados):
         menor_valor = np.min(resultados)
@@ -170,14 +168,26 @@ def comparar_algoritmos(num_rodadas=100):
     metricas_alg1 = calcular_metricas(resultados_alg1)
     metricas_alg2 = calcular_metricas(resultados_alg2)
 
+    # Construir os dados para a tabela
+    dados_tabela = [
+        ['Métrica', 'Algoritmo Não Canônico', 'Algoritmo Canônico'],
+        ['Menor Aptidão', f'{metricas_alg1[0]:.6f}', f'{metricas_alg2[0]:.6f}'],
+        ['Maior Aptidão', f'{metricas_alg1[1]:.6f}', f'{metricas_alg2[1]:.6f}'],
+        ['Média Aptidão', f'{metricas_alg1[2]:.6f}', f'{metricas_alg2[2]:.6f}'],
+        ['Desvio Padrão', f'{metricas_alg1[3]:.6f}', f'{metricas_alg2[3]:.6f}']
+    ]
 
+    fig, ax = plt.subplots(figsize=(8, 4))
+    ax.axis('tight')
+    ax.axis('off')
 
-    print("Comparação entre os Algoritmos Genéticos:")
-    print(f"{'Métrica':<20}{'Algoritmo 1':<20}{'Algoritmo 2':<20}")
-    print(f"{'Menor Aptidão':<20}{metricas_alg1[0]:<20}{metricas_alg2[0]:<20}")
-    print(f"{'Maior Aptidão':<20}{metricas_alg1[1]:<20}{metricas_alg2[1]:<20}")
-    print(f"{'Média Aptidão':<20}{metricas_alg1[2]:<20}{metricas_alg2[2]:<20}")
-    print(f"{'Desvio Padrão':<20}{metricas_alg1[3]:<20}{metricas_alg2[3]:<20}")
+    table = ax.table(cellText=dados_tabela, loc='center', cellLoc='center')
+
+    # table.auto_set_font_size(False)
+    # table.set_fontsize(10)
+    # table.scale(1.2, 1.2)
+
+    plt.show()
 
 # Executar comparação
 comparar_algoritmos()

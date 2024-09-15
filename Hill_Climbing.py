@@ -83,7 +83,7 @@ def hill_Climbing_init_(rounds, limit_1, limit_2, limit_3, limit_4, f_apt, minim
             
             count += 1
             i += 1
-        solucoes.append(f_opt)
+        solucoes.append(round(f_opt, 3))
         rodadas += 1
 
     # Plot com marcacao

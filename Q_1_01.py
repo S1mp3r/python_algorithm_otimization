@@ -8,7 +8,7 @@ def func(x1, x2):
     return (x1**2) + (x2**2)
 
 Hill_Climbing.hill_Climbing_init_(
-                              rounds = 2,
+                              rounds = 100,
                               limit_1 = -100,
                               limit_2 = 100,
                               limit_3 = -100,
@@ -18,7 +18,7 @@ Hill_Climbing.hill_Climbing_init_(
                               )
 
 Local_Random_Search.LRS_init_(
-                              rounds = 2,
+                              rounds = 100,
                               limit_1 = -100,
                               limit_2 = 100,
                               limit_3 = -100,
@@ -28,7 +28,7 @@ Local_Random_Search.LRS_init_(
                               )
 
 Global_Random_Search.GRS_init_(
-                              rounds = 2,
+                              rounds = 100,
                               limit_1 = -100,
                               limit_2 = 100,
                               limit_3 = -100,
