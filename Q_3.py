@@ -150,7 +150,7 @@ def algoritmo_genetico_Canonico(N=100, p=20, nd=4, max_generations=100, mutation
 
 
 
-def comparar_algoritmos(num_rodadas=10):
+def comparar_algoritmos(num_rodadas=100):
     resultados_alg1 = []
     resultados_alg2 = []
 
