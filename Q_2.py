@@ -1,6 +1,56 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import time
+# import imageio
+
+def plot_chessboard_GIF(solutions, gif_name):
+    """
+    Função para gerar Gifs do tabuleiro de Xadrez com as 92 soluções .
+
+    OBS: Para o uso dessa função, é necessário descomentar a linha 4 com o " import imageio " e ter a biblioteca instalada
+
+    Parâmetros:
+    - solutions: Lista de soluções das Oito Damas
+    - gif_name: Nome do arquivo para ser salvo com a extensão ".gif"
+
+    Retorna:
+    - Gif
+
+    Exemplo de Uso:
+    - plot_chessboard_GIF(solutions, '8_queens.gif')
+    """
+
+    n = 8
+    board_template = np.zeros((n, n, 3))  # Criacao do RGB do tabuleiro, padrao eh preto e branco
+    images = []
+    
+
+    for i in range(n):
+        for j in range(n):
+            if (i + j) % 2 == 0:
+                board_template[i, j] = [1, 1, 1]  # W
+            else:
+                board_template[i, j] = [0, 0, 0]  # K
+
+    for solution in solutions:
+        board = board_template.copy()
+
+        
+        for i in range(n):
+            board[solution[i], i] = [1, 0, 0]  # R
+        
+        plt.imshow(board)
+        plt.xticks(np.arange(n))
+        plt.yticks(np.arange(n))
+        plt.gca().set_xticklabels([])
+        plt.gca().set_yticklabels([])
+
+        plt.savefig('temp_image.png')
+        images.append(imageio.imread('temp_image.png')) 
+        plt.clf()  # Limpa a figura para o próximo gráfico
+        
+
+    imageio.mimsave(gif_name, images, fps=1) 
 
 def plot_chessboard(solutions):
     n = 8
@@ -31,7 +81,7 @@ def plot_chessboard(solutions):
         plt.pause(0.5)
         plt.clf()  # Limpa a figura para o próximo gráfico
 
-    plt.show()
+    plt.show() 
 
 # Ideia do Gui
 # def remRep(arr):
@@ -106,9 +156,9 @@ while i < it_max and len(xs_otimos) < 92:
         f_opt = f_cand
 
     i+=1
-    T *= .79
+    # T *= .79
     # T = (T / (1.79 * np.sqrt(T)))
-    # T = T - ((100 - T) / i)
+    T = T - ((100 - T) / i)
     
     if f_opt == 28:
         if isNotInside(x_opt, xs_otimos):
