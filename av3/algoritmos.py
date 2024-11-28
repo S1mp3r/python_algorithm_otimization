@@ -5,7 +5,7 @@ import seaborn as sns
 def sign(u):
     return 1 if u>=0 else -1
 
-def simplePerceptron(x_raw, y_raw, rodadas_max = 1,  epocas_max = 200):
+def simplePerceptron(x_raw, y_raw,  epocas_max = 200):
 
     x_raw = x_raw.T
     y_raw = y_raw.T
@@ -31,26 +31,23 @@ def simplePerceptron(x_raw, y_raw, rodadas_max = 1,  epocas_max = 200):
     w = np.random.random_sample((p+1,1))-.5
 
     erro = True
-    rodadas = 0
-    while(rodadas < rodadas_max):
-        epoca = 0
+    epoca = 0
 
-        while(erro and epoca < epocas_max):
-            erro = False
+    while(erro and epoca < epocas_max):
+        erro = False
 
-            for t in range(N):
-                x_t = x_normalized[:,t].reshape(p+1,1)
-                u_t = (w.T@x_t)[0,0]
-                y_t = sign(u_t)
-                d_t = float(y_raw[t])
-                e_t = d_t - y_t
-                w = w + (lr*e_t*x_t)/2
+        for t in range(N):
+            x_t = x_normalized[:,t].reshape(p+1,1)
+            u_t = (w.T@x_t)[0,0]
+            y_t = sign(u_t)
+            d_t = float(y_raw[t])
+            e_t = d_t - y_t
+            w = w + (lr*e_t*x_t)/2
 
-                if(y_t!=d_t):
-                    erro = True
+            if(y_t!=d_t):
+                erro = True
 
-            epoca+=1
-        rodadas+= 1
+        epoca+=1
     x2 = -w[1,0]/w[2,0]*x_normalized + w[0,0]/w[2,0]
     x2 = np.nan_to_num(x2)
     plt.title("Perceptron Simples")
@@ -68,7 +65,7 @@ def EQM(X,Y,w):
         eq += (d_t-u_t[0,0])**2
     return eq/(2*N)
 
-def ADALINE(x_raw, y_raw, rodadas_max = 1, epocas_max = 200):
+def ADALINE(x_raw, y_raw, epocas_max = 200):
 
     x_raw = x_raw.T
     y_raw = y_raw.T
@@ -95,24 +92,21 @@ def ADALINE(x_raw, y_raw, rodadas_max = 1, epocas_max = 200):
     w = np.zeros((p+1,1))
     w = np.random.random_sample((p+1,1))-.5
 
-    rodadas = 0
-    while(rodadas < rodadas_max):
-        epoca = 0
+    epoca = 0
 
-        EQM1 = 1
-        EQM2 = 0
-        while(epoca < epocas_max and abs(EQM1-EQM2) > pr):
-            EQM1 = EQM(x_normalized, y_raw, w)
+    EQM1 = 1
+    EQM2 = 0
+    while(epoca < epocas_max and abs(EQM1-EQM2) > pr):
+        EQM1 = EQM(x_normalized, y_raw, w)
 
-            for t in range(N):
-                x_t = x_normalized[:,t].reshape(p+1,1)
-                u_t = w.T @ x_t
-                d_t = y_raw[t]
-                e_t = d_t - u_t
-                w = w + lr*e_t*x_t
-            epoca+=1
-            EQM2 = EQM(x_normalized, y_raw, w)
-        rodadas+= 1
+        for t in range(N):
+            x_t = x_normalized[:,t].reshape(p+1,1)
+            u_t = w.T @ x_t
+            d_t = y_raw[t]
+            e_t = d_t - u_t
+            w = w + lr*e_t*x_t
+        epoca+=1
+        EQM2 = EQM(x_normalized, y_raw, w)
 
     x2 = -w[1,0]/w[2,0]*x_normalized + w[0,0]/w[2,0]
     x2 = np.nan_to_num(x2)
