@@ -15,7 +15,9 @@ plt.xlabel("Feature 1")
 plt.ylabel("Feature 2")
 plt.show()
 
-rodadas_max = 10
+#A MATRIZ DE CONFUSAO EH UMA MATRIZ CxC
+
+rodadas_max = 2
 rodadas = 0
 while(rodadas < rodadas_max):
 
@@ -25,8 +27,12 @@ while(rodadas < rodadas_max):
     X_train, X_test = x_raw[train_idx], x_raw[test_idx]
     y_train, y_test = y_raw[train_idx], y_raw[test_idx]
 
-    codigo.simplePerceptron(X_train, y_train, epocas_max = 100)
+    codigo.simplePerceptron(X_train, y_train, epocas_max = 100, lr=0.01)
 
-    codigo.ADALINE(X_train, y_train, epocas_max = 100)
+    codigo.ADALINE(X_train, y_train, epocas_max = 100, lr=0.01, pr=0.01)
+
+    codigo.MLP_Sigmoid(X_train, y_train, epocas_max = 100, lr=0.01, pr=0.01, L=2, Qn=1, m=1, c=2)
+
+    rodadas += 1
 
 bp = 1
