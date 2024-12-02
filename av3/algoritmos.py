@@ -2,248 +2,200 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+precisions = []
+
 def sign(u):
-    return 1 if u>=0 else -1
+    return 1 if u >= 0 else -1
 
-def simplePerceptron(x_raw, y_raw,  epocas_max = 200, lr=0.01):
+def sign_ajustavel(u, first, second, third):
+    return first if u >= second else third
 
-    x_raw = x_raw.T
-    y_raw = y_raw.T
+def sign_MLP(u, activation='sigmoid'):
+    if activation == 'sigmoid':
+        activation_func = lambda x: 1 / (1 + np.exp(-x))
+        activation_derivative = lambda a: a * (1 - a)
 
-    x_normalized = x_raw
-    # x_normalized = (x_raw - np.min(x_raw)) / (np.max(x_raw) - np.min(x_raw))
+    elif activation == 'tanh':
+        activation_func = lambda x: np.tanh(x)
+        activation_derivative = lambda a: 1 - a ** 2
+    
+    return activation_derivative(u)
 
-    c = 2
+def EQM(X, Y, w):
+    p_1, N = X.shape
+    eq = 0
+    for t in range(N):
+        x_t = X[:, t].reshape(p_1, 1)
+        u_t = w.T @ x_t
+        d_t = Y[t]
+        eq += (d_t - u_t[0, 0]) ** 2
+    return eq / (2 * N)
+
+
+def simplePerceptron(x_raw, y_raw, epocas_max = 200, lr = 0.05):
+    x_raw = x_raw.T  # Garantir formato correto (p, N)
+    y_raw = y_raw.T  # Garantir formato correto (1, N)
+
+    # Normalizando os dados
+    x_normalized = (x_raw - np.min(x_raw, axis=1, keepdims=True)) / (np.ptp(x_raw, axis=1, keepdims=True))
+
     p, N = x_raw.shape
 
-    #Adicionando BIAS
-    x_normalized = np.concatenate((
-        -np.ones((1,N)),
-        x_normalized)
-    )
+    # Adicionando BIAS
+    x_normalized = np.concatenate((-np.ones((1, N)), x_normalized))
 
-    w = np.zeros((p+1,1))
-    w = np.random.random_sample((p+1,1))-.5
+    w = np.random.random_sample((p + 1, 1)) - 0.5  # Inicialização dos pesos
 
+    w_list = []
     erro = True
     epoca = 0
 
-    while(erro and epoca < epocas_max):
+    while erro and epoca < epocas_max:
         erro = False
-
         for t in range(N):
-            x_t = x_normalized[:,t].reshape(p+1,1)
-            u_t = (w.T@x_t)[0,0]
+            x_t = x_normalized[:, t].reshape(p + 1, 1)
+            u_t = (w.T @ x_t)[0, 0]
             y_t = sign(u_t)
             d_t = float(y_raw[t])
             e_t = d_t - y_t
-            w = w + (lr*e_t*x_t)/2
+            w += (lr * e_t * x_t) / 2
 
-            if(y_t!=d_t):
+            if y_t != d_t:
                 erro = True
+        w_list.append(w)
+        epoca += 1
 
-        epoca+=1
-    x2 = -w[1,0]/w[2,0]*x_normalized + w[0,0]/w[2,0]
-    x2 = np.nan_to_num(x2)
-    plt.title("Perceptron Simples")
-    line = plt.plot(x_normalized, x2, color='green', linewidth=3)
-    plt.show()
+    return w_list
 
+def ADALINE(x_raw, y_raw, epocas_max = 200, lr = 0.05, pr = 0.05):
+    x_raw = x_raw.T  # Garantir formato correto (p, N)
+    y_raw = y_raw.T  # Garantir formato correto (1, N)
 
+    # Normalizando os dados
+    x_normalized = (x_raw - np.min(x_raw, axis=1, keepdims=True)) / (np.ptp(x_raw, axis=1, keepdims=True))
 
-
-def EQM(X,Y,w):
-    p_1,N = X.shape
-    eq = 0
-    for t in range(N):
-        x_t = X[:,t].reshape(p_1,1)
-        u_t = w.T@x_t
-        d_t = Y[t]
-        eq += (d_t-u_t[0,0])**2
-    return eq/(2*N)
-
-def ADALINE(x_raw, y_raw, epocas_max = 200, lr=0.01, pr=0.01):
-
-    x_raw = x_raw.T
-    y_raw = y_raw.T
-
-    # x_normalized = x_raw
-    x_normalized = (x_raw - np.min(x_raw)) / (np.max(x_raw) - np.min(x_raw))
-
-    c = 2
     p, N = x_raw.shape
 
-    #Adicionando BIAS
-    x_normalized = np.concatenate((
-        -np.ones((1,N)),
-        x_normalized)
-    )
+    # Adicionando BIAS
+    x_normalized = np.concatenate((-np.ones((1, N)), x_normalized))
+    
+    w = np.random.random_sample((p + 1, 1)) - 0.5
 
-    lr = .05
-    pr = .05
-
-    w = np.zeros((p+1,1))
-    w = np.random.random_sample((p+1,1))-.5
-
+    w_list = []
     epoca = 0
-
     EQM1 = 1
     EQM2 = 0
-    while(epoca < epocas_max and abs(EQM1-EQM2) > pr):
+
+    while epoca < epocas_max and abs(EQM1 - EQM2) > pr:
         EQM1 = EQM(x_normalized, y_raw, w)
 
         for t in range(N):
-            x_t = x_normalized[:,t].reshape(p+1,1)
+            x_t = x_normalized[:, t].reshape(p + 1, 1)
             u_t = w.T @ x_t
             d_t = y_raw[t]
             e_t = d_t - u_t
-            w = w + lr*e_t*x_t
-        epoca+=1
+            w += lr * e_t * x_t
+        epoca += 1
+        w_list.append(w)
         EQM2 = EQM(x_normalized, y_raw, w)
 
-    x2 = -w[1,0]/w[2,0]*x_normalized + w[0,0]/w[2,0]
-    x2 = np.nan_to_num(x2)
-    plt.title("Adelinda")
-    plt.plot(x_normalized,x2,color='k',alpha=.2)
-    plt.show()
+    return w_list
 
+def MLP(x_raw, y_raw, hidden_layers=[25], learning_rate=0.1, epocas_max=200, activation='sigmoid', precision=1e-6):
+    x_raw = x_raw.T  # Garantir formato correto (p, N)
+    y_raw = y_raw.reshape(1, -1)  # Garantir formato correto (1, N)
 
-
-
-
-def forward(x, w_list, i_list, y_list, y, signs):
-    j = 0
-
-    for w in w_list:
-        if j == 0:
-            i_list[j] = w.T@x
-            y_list[j] = signs(i_list[j]) #FAZER O SIGMOIDE
-        else:
-            y_bias = y[j - 1]
-            i_list[j] = w.T@y_bias
-            y_list[j] = signs(i_list[j]) #FAZER O SIGMOIDE
-        j += 1
-
-    return x
-
-def backward(x, d, w_list, erro_list, y, lr, signs):
-    j = len(w_list) - 1
-    
-    while(j >= 0):
-        if j + 1 == len(w_list):
-            erro_list[j] = signs(x) * (d - y[j])
-            y_bias = y[j - 1]
-            w_list[j] = w_list[j] + lr*erro_list[j]*y_bias
-        elif j == 0:
-            w_list[j + 1] = w_list[j + 1].T
-            erro_list[j] = signs(x) * (w_list[j + 1] * erro_list[j + 1])
-            w_list[j] = w_list[j] + lr*erro_list[j]*x
-        else:
-            w_list[j + 1] = w_list[j + 1].T
-            erro_list[j] = signs(x) * (w_list[j + 1] * erro_list[j + 1])
-            y_bias = y[j - 1]
-            w_list[j] = w_list[j] + lr*erro_list[j]*y_bias
-        j -= 1
-
-    return x,d
-
-def EQM_MLP(X, Y, w_list, i_list, y_list, m, L, signs):
-    p_1,N = X.shape
-    eq = 0
-    D = []
-
-    for t in range(N):
-        x_t = X[:,t].reshape(p_1,1)
-        forward(x_t, w_list, i_list, y_list, Y, signs)
-        D.append(Y[t])
-        eqi = 0
-        j = 0
-        for _ in range(m):
-            eqi += (D[j] - Y[len(L) - 1][j])**2
-            j += 1
-        
-        eq += eqi
-    
-    return eq/(2*N)
-
-def sigmoid_log(x):
-    return 1 / (1 + np.exp(-x))
-
-def sigmoid_derivative(x):
-    return sigmoid_log(x) * (1 - sigmoid_log(x))
-
-def tanh(x):
-    return np.tanh(x)
-
-def tanh_derivative(x):
-    return 1 - np.tanh(x)**2
-
-def MLP(x_raw, y_raw, epocas_max = 200, lr=0.01, pr=0.01, L=1, Qn=1, m=1, c=2, activation="sigmoid"):
-
-    x_raw = x_raw.T
-    y_raw = y_raw.T
-
-    x_normalized_positivo = (x_raw - np.min(x_raw)) / (np.max(x_raw) - np.min(x_raw))
-
-    x_normalized_negativo = 2*((x_raw - np.min(x_raw)) / (np.max(x_raw) - np.min(x_raw))) - 1
+    # Normalizando os dados
+    x_normalized = (x_raw - np.min(x_raw, axis=1, keepdims=True)) / (np.ptp(x_raw, axis=1, keepdims=True))
 
     p, N = x_raw.shape
+    n_output = 1  # Saída binária
 
-    #Adicionando BIAS
-    x_normalized_positivo = np.concatenate((
-        -np.ones((1,N)),
-        x_normalized_positivo)
-    )
+    layers = [p] + hidden_layers + [n_output]
 
-    x_normalized_negativo = np.concatenate((
-        -np.ones((1,N)),
-        x_normalized_negativo)
-    )
+    # Inicialização dos pesos e biases
+    weights = []
+    biases = []
+    for i in range(len(layers) - 1):
+        if activation == 'sigmoid':
+            # w = np.random.randn(layers[i + 1], layers[i]) * np.sqrt(2 / layers[i])
+            # w = np.random.random_sample((layers[i + 1], layers[i])) - 0.5
+            # w = np.random.random_sample((layers[i + 1], layers[i]))
+            w = np.random.randn(layers[i + 1], layers[i]) * np.sqrt(2. / (layers[i] + layers[i + 1]))
+        elif activation == 'tanh':
+            w = np.random.randn(layers[i + 1], layers[i]) * np.sqrt(2 / layers[i])
 
-    y = np.concatenate((
-        -np.ones((1, N)),
-        y_raw),
-    axis=0)
+        b = np.zeros((layers[i + 1], 1))
+        weights.append(w)
+        biases.append(b)
 
-    L = [p] + Qn + [1]
-    
-    i_list = []
-    y_list = []
-    w_list = []
-    erro_list = []
-    results_ta = []
-
-
-    for _ in range(L):
-        w = np.zeros((L+1,1))
-        w = np.random.random_sample((L+1,1))-.5
-        w_list.append(w)
-
-    epoca = 0
-
+    # Funções de ativação
     if activation == 'sigmoid':
-        activation_derivative = sigmoid_derivative
+        activation_func = lambda x: 1 / (1 + np.exp(-x))
+        activation_derivative = lambda a: a * (1 - a)
     elif activation == 'tanh':
-        activation_derivative = tanh_derivative
+        activation_func = lambda x: np.tanh(x)
+        activation_derivative = lambda a: 1 - a ** 2
 
-    EQM1 = 1
-    EQM2 = 0
-    while(epoca < epocas_max and abs(EQM1-EQM2) > pr):
-        EQM1 = EQM_MLP(x_normalized_positivo, y_raw, w_list, i_list, y_list, m, L, activation_derivative)
+    losses = []
 
+    for epoch in range(epocas_max):
+        activations = [x_normalized]
+        zs = []
 
-        for t in range(N):
-            x_t = x_normalized_positivo[:,t].reshape(p+1,1)
-            forward(x_t, w_list, i_list, y_list, y, activation_derivative)
-            d_t = y_raw[t]
-            backward(x_t, d_t, w_list, erro_list, y_raw, lr, activation_derivative)
-        
-        EQM2 = EQM_MLP(x_normalized_positivo, y_raw, w_list, i_list, y_list, m, L, activation_derivative)
+        # Forward pass
+        for w, b in zip(weights, biases):
+            z = np.dot(w, activations[-1]) + b
+            zs.append(z)
+            a = activation_func(z)
+            activations.append(a)
 
-    x2 = -w[1,0]/w[2,0]*x_normalized_positivo + w[0,0]/w[2,0]
-    x2 = np.nan_to_num(x2)
-    plt.title("MLP")
-    plt.plot(x_normalized_positivo, x2,color='k',alpha=.2)
-    plt.show()
+        y_pred = activations[-1]
+        loss = np.mean((y_pred - y_raw) ** 2) / 2
+        losses.append(loss)
     
+        current_precision = abs(losses[-1] - losses[-2]) if len(losses) > 1 else np.inf
+
+        precisions.append(current_precision)
+
+        # Condição de parada baseada na precisão
+        if epoch > 0 and current_precision < precision:
+            break
+
+        # Backpropagation
+        deltas = [None] * len(weights)
+        delta = (y_pred - y_raw) * activation_derivative(y_pred)
+        deltas[-1] = delta
+
+        for l in range(len(weights) - 2, -1, -1):
+            delta = np.dot(weights[l + 1].T, deltas[l + 1]) * activation_derivative(activations[l + 1])
+            deltas[l] = delta
+
+        # Atualização dos pesos e biases
+        for l in range(len(weights)):
+            weights[l] -= learning_rate * np.dot(deltas[l], activations[l].T) / N
+            biases[l] -= learning_rate * np.mean(deltas[l], axis=1, keepdims=True)
+
+    model = {'weights': weights, 'biases': biases, 'activation_func': activation_func}
+    return model, precisions
+
+
+def MLP_predict(model, x_raw):
+    x_raw = x_raw.T
+    x_normalized = (x_raw - np.min(x_raw, axis=1, keepdims=True)) / (np.ptp(x_raw, axis=1, keepdims=True))
+
+    activations = [x_normalized]
+    weights = model['weights']
+    biases = model['biases']
+    activation_func = model['activation_func']
+
+    for w, b in zip(weights, biases):
+        z = np.dot(w, activations[-1]) + b
+        a = activation_func(z)
+        activations.append(a)
+
+    y_pred = activations[-1]
+
+    return y_pred.T  # Retornar no formato (N, 1)
+
 
