@@ -44,6 +44,21 @@ def plotar_matriz_confusao_com_metricas(matriz, titulo, acuracia, sensibilidade,
             plt.text(j, i, f"{matriz[i][j]}", ha='center', va='center', color="black")
     plt.show()
 
+def plotar_matriz_confusao_com_metricas_negativas(matriz, titulo, acuracia, sensibilidade, especificidade):
+    plt.figure()
+    plt.title(f"{titulo}\nAcurácia: {acuracia:.4f} | Sensibilidade: {sensibilidade:.4f} | Especificidade: {especificidade:.4f}")
+    plt.imshow(matriz, cmap='Blues', interpolation='nearest')
+    plt.colorbar(label="Contagem")
+    plt.xticks([0, 1], ["-1 (Negativo)", "1 (Positivo)"])
+    plt.yticks([0, 1], ["-1 (Negativo)", "1 (Positivo)"])
+    plt.xlabel("Previsão")
+    plt.ylabel("Real")
+    for i in range(2):
+        for j in range(2):
+            plt.text(j, i, f"{matriz[i][j]}", ha='center', va='center', color="black")
+    plt.show()
+
+clear = lambda: os.system('cls')
 
 data = np.loadtxt("spiral.csv", delimiter=",")
 x_raw = data[:, :2]
@@ -62,20 +77,22 @@ acuracias_train = {"MLP - TANH": []}
 especificidades_train = {"MLP - TANH": []}
 sensibilidades_train = {"MLP - TANH": []}
 
-learningR = 1e-3
-precisionR = 1e-4
+learningR_Simple = 1e-2
+epocas_max_Simple = 100
+
+learningR_ADALINE = 1e-3
+precisionR_ADALINE = 1e-4
+epocas_max_ADALINE = 400
+
+learningR_MLP = 1e-3
 precisionR_MLP = 1e-5
-epocas_max = 600
 epocas_max_MLP = 1500
 hidden_layers = [10]
 activation_tanh = 'tanh'
-activation_sigmoid = 'sigmoid'
-max_rounds = 2
-
-clear = lambda: os.system('cls')
 
 clear()
 
+max_rounds = 2
 for rodada in range(max_rounds):
 
     print(f"RODADA ATUAL: {rodada+1} DE {max_rounds}")
@@ -92,10 +109,12 @@ for rodada in range(max_rounds):
     # Ajustando y_test para {0, 1}
     y_test_bin_negativo = 2 * y_test_bin - 1
 
+#================================================================================================================================================================================================
+
     w_perceptron = codigo.simplePerceptron(X_train,
                                            y_train,
-                                           epocas_max=epocas_max,
-                                           lr=learningR
+                                           epocas_max=epocas_max_Simple,
+                                           lr=learningR_Simple
                                            )[-1]
     
     X_test_perceptron = np.concatenate((-np.ones((1, X_test.shape[0])), X_test.T))
@@ -107,12 +126,14 @@ for rodada in range(max_rounds):
     acuracias["Perceptron"].append(acc_p)
     matrizes["Perceptron"].append(matriz_p)
 
+#================================================================================================================================================================================================
+
     # ADALINE
     w_adaline = codigo.ADALINE(X_train,
                                y_train,
-                               epocas_max=epocas_max,
-                               lr=learningR,
-                               pr=precisionR
+                               epocas_max=epocas_max_ADALINE,
+                               lr=learningR_ADALINE,
+                               pr=precisionR_ADALINE
                                )[-1]
     
     y_pred_adaline = np.array([w_adaline.T @ X_test_perceptron[:, i] for i in range(X_test.shape[0])]).flatten()
@@ -122,11 +143,13 @@ for rodada in range(max_rounds):
     acuracias["ADALINE"].append(acc_a)
     matrizes["ADALINE"].append(matriz_a)
 
+#================================================================================================================================================================================================
+
     # MLP - Tanh
     model_mlp_tanh, precision_mlp_tanh = codigo.MLP(X_train,
                            y_train,
                            hidden_layers=hidden_layers,
-                           learning_rate=learningR,
+                           learning_rate=learningR_MLP,
                            epocas_max=epocas_max_MLP,
                            activation=activation_tanh,
                            precision=precisionR_MLP
@@ -137,6 +160,10 @@ for rodada in range(max_rounds):
     y_pred_mlp_bin_train_tanh = np.array([codigo.sign_ajustavel(u, first=1, second=0, third=-1) for u in y_pred_mlp_train_tanh.flatten()])
 
     acc_mlp_train_tanh, esp_mlp_train_tanh, sens_mlp_train_tanh, matrix_mlp = calcular_metricas_negativas(y_train, y_pred_mlp_bin_train_tanh)
+
+#================================================================================================================================================================================================
+
+
     acuracias_train["MLP - TANH"].append(acc_mlp_train_tanh)
     especificidades_train["MLP - TANH"].append(esp_mlp_train_tanh)
     sensibilidades_train["MLP - TANH"].append(sens_mlp_train_tanh)
@@ -154,13 +181,22 @@ for modelo in acuracias:
     sensibilidade_melhor = matriz_melhor[1][1] / (matriz_melhor[1][1] + matriz_melhor[1][0]) if (matriz_melhor[1][1] + matriz_melhor[1][0]) > 0 else 0
 
     # Plotar a melhor matriz de confusão
-    plotar_matriz_confusao_com_metricas(
-        matriz_melhor, 
-        f"Matriz de Confusão Melhor - {modelo}", 
-        acuracia_melhor, 
-        sensibilidade_melhor, 
-        especificidade_melhor
-    )
+    if modelo != "MLP - TAHN":
+        plotar_matriz_confusao_com_metricas(
+            matriz_melhor, 
+            f"Matriz de Confusão Melhor - {modelo}", 
+            acuracia_melhor, 
+            sensibilidade_melhor, 
+            especificidade_melhor
+        )
+    else:
+        plotar_matriz_confusao_com_metricas_negativas(
+            matriz_melhor, 
+            f"Matriz de Confusão Melhor - {modelo}", 
+            acuracia_melhor, 
+            sensibilidade_melhor, 
+            especificidade_melhor
+        )
 
     # Encontrar a pior rodada
     pior_idx = np.argmin(acuracias[modelo])
@@ -170,13 +206,23 @@ for modelo in acuracias:
     sensibilidade_pior = matriz_pior[1][1] / (matriz_pior[1][1] + matriz_pior[1][0]) if (matriz_pior[1][1] + matriz_pior[1][0]) > 0 else 0
 
     # Plotar a pior matriz de confusão
-    plotar_matriz_confusao_com_metricas(
-        matriz_pior, 
-        f"Matriz de Confusão Pior - {modelo}", 
-        acuracia_pior, 
-        sensibilidade_pior, 
-        especificidade_pior
-    )
+    if modelo != "MLP - TAHN":
+        plotar_matriz_confusao_com_metricas(
+            matriz_pior, 
+            f"Matriz de Confusão Pior - {modelo}", 
+            acuracia_pior, 
+            sensibilidade_pior, 
+            especificidade_pior
+        )
+    else:
+        plotar_matriz_confusao_com_metricas_negativas(
+            matriz_pior, 
+            f"Matriz de Confusão Pior - {modelo}", 
+            acuracia_pior, 
+            sensibilidade_pior, 
+            especificidade_pior
+        )
+
 acuracia_mlp_tanh_test = acuracias["MLP - TANH"]
 especificidade_mlp_tanh_test = [m[0][0] / (m[0][0] + m[0][1]) if (m[0][0] + m[0][1]) > 0 else 0 for m in matrizes["MLP - TANH"]]
 sensibilidade_mlp_tanh_test = [m[1][1] / (m[1][1] + m[1][0]) if (m[1][1] + m[1][0]) > 0 else 0 for m in matrizes["MLP - TANH"]]

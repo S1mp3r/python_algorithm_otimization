@@ -10,17 +10,6 @@ def sign(u):
 def sign_ajustavel(u, first, second, third):
     return first if u >= second else third
 
-def sign_MLP(u, activation='sigmoid'):
-    if activation == 'sigmoid':
-        activation_func = lambda x: 1 / (1 + np.exp(-x))
-        activation_derivative = lambda a: a * (1 - a)
-
-    elif activation == 'tanh':
-        activation_func = lambda x: np.tanh(x)
-        activation_derivative = lambda a: 1 - a ** 2
-    
-    return activation_derivative(u)
-
 def EQM(X, Y, w):
     p_1, N = X.shape
     eq = 0
@@ -33,18 +22,16 @@ def EQM(X, Y, w):
 
 
 def simplePerceptron(x_raw, y_raw, epocas_max = 200, lr = 0.05):
-    x_raw = x_raw.T  # Garantir formato correto (p, N)
-    y_raw = y_raw.T  # Garantir formato correto (1, N)
+    x_raw = x_raw.T  # (p, N)
+    y_raw = y_raw.T  # (1, N)
 
-    # Normalizando os dados
     x_normalized = (x_raw - np.min(x_raw, axis=1, keepdims=True)) / (np.ptp(x_raw, axis=1, keepdims=True))
 
     p, N = x_raw.shape
 
-    # Adicionando BIAS
     x_normalized = np.concatenate((-np.ones((1, N)), x_normalized))
 
-    w = np.random.random_sample((p + 1, 1)) - 0.5  # Inicialização dos pesos
+    w = np.random.random_sample((p + 1, 1)) - 0.5
 
     w_list = []
     erro = True
@@ -68,24 +55,22 @@ def simplePerceptron(x_raw, y_raw, epocas_max = 200, lr = 0.05):
     return w_list
 
 def ADALINE(x_raw, y_raw, epocas_max = 200, lr = 0.05, pr = 0.05):
-    x_raw = x_raw.T  # Garantir formato correto (p, N)
-    y_raw = y_raw.T  # Garantir formato correto (1, N)
+    x_raw = x_raw.T  # (p, N)
+    y_raw = y_raw.T  # (1, N)
 
-    # Normalizando os dados
     x_normalized = (x_raw - np.min(x_raw, axis=1, keepdims=True)) / (np.ptp(x_raw, axis=1, keepdims=True))
 
     p, N = x_raw.shape
 
-    # Adicionando BIAS
     x_normalized = np.concatenate((-np.ones((1, N)), x_normalized))
     
     w = np.random.random_sample((p + 1, 1)) - 0.5
-
     w_list = []
-    epoca = 0
+
     EQM1 = 1
     EQM2 = 0
 
+    epoca = 0
     while epoca < epocas_max and abs(EQM1 - EQM2) > pr:
         EQM1 = EQM(x_normalized, y_raw, w)
 
@@ -95,45 +80,35 @@ def ADALINE(x_raw, y_raw, epocas_max = 200, lr = 0.05, pr = 0.05):
             d_t = y_raw[t]
             e_t = d_t - u_t
             w += lr * e_t * x_t
+        
         epoca += 1
         w_list.append(w)
         EQM2 = EQM(x_normalized, y_raw, w)
 
     return w_list
 
-def MLP(x_raw, y_raw, hidden_layers=[25], learning_rate=0.1, epocas_max=200, activation='sigmoid', precision=1e-6):
-    x_raw = x_raw.T  # Garantir formato correto (p, N)
-    y_raw = y_raw.reshape(1, -1)  # Garantir formato correto (1, N)
+def MLP(x_raw, y_raw, hidden_layers=[25], learning_rate=0.1, epocas_max=200, activation='tanh', precision=1e-6):
+    x_raw = x_raw.T
+    y_raw = y_raw.reshape(1, -1)
 
-    # Normalizando os dados
     x_normalized = (x_raw - np.min(x_raw, axis=1, keepdims=True)) / (np.ptp(x_raw, axis=1, keepdims=True))
 
     p, N = x_raw.shape
-    n_output = 1  # Saída binária
+    n_output = 1
 
     layers = [p] + hidden_layers + [n_output]
 
-    # Inicialização dos pesos e biases
     weights = []
     biases = []
     for i in range(len(layers) - 1):
-        if activation == 'sigmoid':
-            # w = np.random.randn(layers[i + 1], layers[i]) * np.sqrt(2 / layers[i])
-            # w = np.random.random_sample((layers[i + 1], layers[i])) - 0.5
-            # w = np.random.random_sample((layers[i + 1], layers[i]))
-            w = np.random.randn(layers[i + 1], layers[i]) * np.sqrt(2. / (layers[i] + layers[i + 1]))
-        elif activation == 'tanh':
+        if activation == 'tanh':
             w = np.random.randn(layers[i + 1], layers[i]) * np.sqrt(2 / layers[i])
 
         b = np.zeros((layers[i + 1], 1))
         weights.append(w)
         biases.append(b)
 
-    # Funções de ativação
-    if activation == 'sigmoid':
-        activation_func = lambda x: 1 / (1 + np.exp(-x))
-        activation_derivative = lambda a: a * (1 - a)
-    elif activation == 'tanh':
+    if activation == 'tanh':
         activation_func = lambda x: np.tanh(x)
         activation_derivative = lambda a: 1 - a ** 2
 
@@ -158,7 +133,6 @@ def MLP(x_raw, y_raw, hidden_layers=[25], learning_rate=0.1, epocas_max=200, act
 
         precisions.append(current_precision)
 
-        # Condição de parada baseada na precisão
         if epoch > 0 and current_precision < precision:
             break
 
@@ -171,7 +145,6 @@ def MLP(x_raw, y_raw, hidden_layers=[25], learning_rate=0.1, epocas_max=200, act
             delta = np.dot(weights[l + 1].T, deltas[l + 1]) * activation_derivative(activations[l + 1])
             deltas[l] = delta
 
-        # Atualização dos pesos e biases
         for l in range(len(weights)):
             weights[l] -= learning_rate * np.dot(deltas[l], activations[l].T) / N
             biases[l] -= learning_rate * np.mean(deltas[l], axis=1, keepdims=True)
@@ -196,6 +169,6 @@ def MLP_predict(model, x_raw):
 
     y_pred = activations[-1]
 
-    return y_pred.T  # Retornar no formato (N, 1)
+    return y_pred.T # (N,1)
 
 
