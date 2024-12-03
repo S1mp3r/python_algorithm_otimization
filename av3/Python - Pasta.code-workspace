@@ -1,0 +1,13 @@
+{
+  "folders": [
+	{
+		"name": "Python - Pasta",
+		"path": ".."
+	},
+	{
+		"name": "av2",
+		"path": "../av1/av2"
+	}
+],
+  "settings": {}
+}
