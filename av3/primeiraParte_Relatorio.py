@@ -60,8 +60,8 @@ epocas_max_ADALINE = 400
 
 learningR_MLP = 1e-3
 precisionR_MLP = 1e-5
-epocas_max_MLP = 1500
-hidden_layers = [10]
+epocas_max_MLP = 5000
+hidden_layers = [10, 10, 10, 10, 10, 10, 10, 10, 10]
 activation_tanh = 'tanh'
 
 clear()
