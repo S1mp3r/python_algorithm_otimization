@@ -5,24 +5,11 @@ import pandas as pd
 import algoritmos as codigo
 import os
 
-
-def calcular_metricas(y_true, y_pred):
-    TP = np.sum((y_true == 1) & (y_pred == 1))  # Verdadeiros positivos
-    TN = np.sum((y_true == 0) & (y_pred == 0))  # Verdadeiros negativos
-    FP = np.sum((y_true == 0) & (y_pred == 1))  # Falsos positivos
-    FN = np.sum((y_true == 1) & (y_pred == 0))  # Falsos negativos
-
-    acuracia = (TP + TN) / (TP + TN + FP + FN)
-    especificidade = TN / (TN + FP) if (TN + FP) > 0 else 0
-    sensibilidade = TP / (TP + FN) if (TP + FN) > 0 else 0
-
-    return acuracia, especificidade, sensibilidade, [[TN, FP], [FN, TP]]
-
-def calcular_metricas_negativas(y_true, y_pred):
-    TP = np.sum((y_true == 1) & (y_pred == 1))  # Verdadeiros positivos
-    TN = np.sum((y_true == -1) & (y_pred == -1))  # Verdadeiros negativos
-    FP = np.sum((y_true == -1) & (y_pred == 1))  # Falsos positivos
-    FN = np.sum((y_true == 1) & (y_pred == -1))  # Falsos negativos
+def calcular_metricas_generica(y_true, y_pred, positivo=1, negativo=0):
+    TP = np.sum((y_true == positivo) & (y_pred == positivo))    # Verdadeiros positivos
+    TN = np.sum((y_true == negativo) & (y_pred == negativo))    # Verdadeiros negativos
+    FP = np.sum((y_true == negativo) & (y_pred == positivo))    # Falsos positivos
+    FN = np.sum((y_true == positivo) & (y_pred == negativo))    # Falsos negativos
 
     acuracia = (TP + TN) / (TP + TN + FP + FN)
     especificidade = TN / (TN + FP) if (TN + FP) > 0 else 0
@@ -30,27 +17,13 @@ def calcular_metricas_negativas(y_true, y_pred):
 
     return acuracia, especificidade, sensibilidade, [[TN, FP], [FN, TP]]
 
-def plotar_matriz_confusao_com_metricas(matriz, titulo, acuracia, sensibilidade, especificidade):
+def plotar_matriz_confusao(matriz, titulo, acuracia, sensibilidade, especificidade, labels):
     plt.figure()
     plt.title(f"{titulo}\nAcurácia: {acuracia:.4f} | Sensibilidade: {sensibilidade:.4f} | Especificidade: {especificidade:.4f}")
     plt.imshow(matriz, cmap='Blues', interpolation='nearest')
     plt.colorbar(label="Contagem")
-    plt.xticks([0, 1], ["0 (Negativo)", "1 (Positivo)"])
-    plt.yticks([0, 1], ["0 (Negativo)", "1 (Positivo)"])
-    plt.xlabel("Previsão")
-    plt.ylabel("Real")
-    for i in range(2):
-        for j in range(2):
-            plt.text(j, i, f"{matriz[i][j]}", ha='center', va='center', color="black")
-    plt.show()
-
-def plotar_matriz_confusao_com_metricas_negativas(matriz, titulo, acuracia, sensibilidade, especificidade):
-    plt.figure()
-    plt.title(f"{titulo}\nAcurácia: {acuracia:.4f} | Sensibilidade: {sensibilidade:.4f} | Especificidade: {especificidade:.4f}")
-    plt.imshow(matriz, cmap='Blues', interpolation='nearest')
-    plt.colorbar(label="Contagem")
-    plt.xticks([0, 1], ["-1 (Negativo)", "1 (Positivo)"])
-    plt.yticks([0, 1], ["-1 (Negativo)", "1 (Positivo)"])
+    plt.xticks([0, 1], [f"{labels[0]} (Negativo)", f"{labels[1]} (Positivo)"])
+    plt.yticks([0, 1], [f"{labels[0]} (Negativo)", f"{labels[1]} (Positivo)"])
     plt.xlabel("Previsão")
     plt.ylabel("Real")
     for i in range(2):
@@ -60,8 +33,9 @@ def plotar_matriz_confusao_com_metricas_negativas(matriz, titulo, acuracia, sens
 
 clear = lambda: os.system('cls')
 
-data = np.loadtxt("spiral.csv", delimiter=",")
+data = np.loadtxt("av3/spiral.csv", delimiter=",")
 x_raw = data[:, :2]
+x_raw = (x_raw - np.min(x_raw, axis=0)) / (np.max(x_raw, axis=0) - np.min(x_raw, axis=0))
 y_raw = data[:, 2].astype(int)
 
 plt.figure(figsize=(8, 6))
@@ -106,7 +80,7 @@ for rodada in range(max_rounds):
     # Ajustando y_test para {0, 1}
     y_test_bin = ((y_test + 1) // 2).astype(int)
 
-    # Ajustando y_test para {0, 1}
+    # Ajustando y_test para {-1, 1}
     y_test_bin_negativo = 2 * y_test_bin - 1
 
 #================================================================================================================================================================================================
@@ -122,7 +96,7 @@ for rodada in range(max_rounds):
 
     y_pred_perceptron_bin = ((y_pred_perceptron + 1) // 2).astype(int)
 
-    acc_p, esp_p, sens_p, matriz_p = calcular_metricas(y_test_bin, y_pred_perceptron_bin)
+    acc_p, esp_p, sens_p, matriz_p = calcular_metricas_generica(y_test_bin, y_pred_perceptron_bin)
     acuracias["Perceptron"].append(acc_p)
     matrizes["Perceptron"].append(matriz_p)
 
@@ -139,7 +113,7 @@ for rodada in range(max_rounds):
     y_pred_adaline = np.array([w_adaline.T @ X_test_perceptron[:, i] for i in range(X_test.shape[0])]).flatten()
     y_pred_adaline_bin = np.array([codigo.sign_ajustavel(u, first=1, second=0, third=0) for u in y_pred_adaline])
 
-    acc_a, esp_a, sens_a, matriz_a = calcular_metricas(y_test_bin, y_pred_adaline_bin)
+    acc_a, esp_a, sens_a, matriz_a = calcular_metricas_generica(y_test_bin, y_pred_adaline_bin)
     acuracias["ADALINE"].append(acc_a)
     matrizes["ADALINE"].append(matriz_a)
 
@@ -159,7 +133,7 @@ for rodada in range(max_rounds):
     y_pred_mlp_train_tanh = codigo.MLP_predict(model_mlp_tanh, X_train)
     y_pred_mlp_bin_train_tanh = np.array([codigo.sign_ajustavel(u, first=1, second=0, third=-1) for u in y_pred_mlp_train_tanh.flatten()])
 
-    acc_mlp_train_tanh, esp_mlp_train_tanh, sens_mlp_train_tanh, matrix_mlp = calcular_metricas_negativas(y_train, y_pred_mlp_bin_train_tanh)
+    acc_mlp_train_tanh, esp_mlp_train_tanh, sens_mlp_train_tanh, matrix_mlp = calcular_metricas_generica(y_train, y_pred_mlp_bin_train_tanh, negativo=-1)
 
 #================================================================================================================================================================================================
 
@@ -182,20 +156,22 @@ for modelo in acuracias:
 
     # Plotar a melhor matriz de confusão
     if modelo != "MLP - TAHN":
-        plotar_matriz_confusao_com_metricas(
+        plotar_matriz_confusao(
             matriz_melhor, 
             f"Matriz de Confusão Melhor - {modelo}", 
             acuracia_melhor, 
             sensibilidade_melhor, 
-            especificidade_melhor
+            especificidade_melhor,
+            labels=["0", "1"]
         )
     else:
-        plotar_matriz_confusao_com_metricas_negativas(
+        plotar_matriz_confusao(
             matriz_melhor, 
             f"Matriz de Confusão Melhor - {modelo}", 
             acuracia_melhor, 
             sensibilidade_melhor, 
-            especificidade_melhor
+            especificidade_melhor,
+            labels=["-1", "1"]
         )
 
     # Encontrar a pior rodada
@@ -207,20 +183,22 @@ for modelo in acuracias:
 
     # Plotar a pior matriz de confusão
     if modelo != "MLP - TAHN":
-        plotar_matriz_confusao_com_metricas(
+        plotar_matriz_confusao(
             matriz_pior, 
             f"Matriz de Confusão Pior - {modelo}", 
             acuracia_pior, 
             sensibilidade_pior, 
-            especificidade_pior
+            especificidade_pior,
+            labels=["0", "1"]
         )
     else:
-        plotar_matriz_confusao_com_metricas_negativas(
+        plotar_matriz_confusao(
             matriz_pior, 
             f"Matriz de Confusão Pior - {modelo}", 
             acuracia_pior, 
             sensibilidade_pior, 
-            especificidade_pior
+            especificidade_pior,
+            labels=["-1", "1"]
         )
 
 acuracia_mlp_tanh_test = acuracias["MLP - TANH"]

@@ -1,6 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 precisions = []
 
@@ -25,7 +23,7 @@ def simplePerceptron(x_raw, y_raw, epocas_max = 200, lr = 0.05):
     x_raw = x_raw.T  # (p, N)
     y_raw = y_raw.T  # (1, N)
 
-    x_normalized = (x_raw - np.min(x_raw, axis=1, keepdims=True)) / (np.ptp(x_raw, axis=1, keepdims=True))
+    x_normalized = x_raw
 
     p, N = x_raw.shape
 
@@ -58,7 +56,7 @@ def ADALINE(x_raw, y_raw, epocas_max = 200, lr = 0.05, pr = 0.05):
     x_raw = x_raw.T  # (p, N)
     y_raw = y_raw.T  # (1, N)
 
-    x_normalized = (x_raw - np.min(x_raw, axis=1, keepdims=True)) / (np.ptp(x_raw, axis=1, keepdims=True))
+    x_normalized = x_raw
 
     p, N = x_raw.shape
 
@@ -91,7 +89,7 @@ def MLP(x_raw, y_raw, hidden_layers=[25], learning_rate=0.1, epocas_max=200, act
     x_raw = x_raw.T
     y_raw = y_raw.reshape(1, -1)
 
-    x_normalized = (x_raw - np.min(x_raw, axis=1, keepdims=True)) / (np.ptp(x_raw, axis=1, keepdims=True))
+    x_normalized = x_raw
 
     p, N = x_raw.shape
     n_output = 1
@@ -155,7 +153,8 @@ def MLP(x_raw, y_raw, hidden_layers=[25], learning_rate=0.1, epocas_max=200, act
 
 def MLP_predict(model, x_raw):
     x_raw = x_raw.T
-    x_normalized = (x_raw - np.min(x_raw, axis=1, keepdims=True)) / (np.ptp(x_raw, axis=1, keepdims=True))
+    
+    x_normalized = x_raw
 
     activations = [x_normalized]
     weights = model['weights']
