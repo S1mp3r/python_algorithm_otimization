@@ -169,5 +169,3 @@ def MLP_predict(model, x_raw):
     y_pred = activations[-1]
 
     return y_pred.T # (N,1)
-
-

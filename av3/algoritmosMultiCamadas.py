@@ -71,10 +71,6 @@ def softmax(Z):
     return expZ / np.sum(expZ, axis=0, keepdims=True)
 
 def MLP(X, Y, hidden_layers=[100, 100], learning_rate=1e-4, epocas_max=5000, activation='relu'):
-    # Para classificação multiclasse, usaremos:
-    # - ReLU nas camadas ocultas
-    # - Softmax na camada de saída
-    # - Perda: cross-entropy
 
     p, N = X.shape
     C = Y.shape[0]  # Número de classes
@@ -83,7 +79,7 @@ def MLP(X, Y, hidden_layers=[100, 100], learning_rate=1e-4, epocas_max=5000, act
     weights = []
     biases = []
 
-    # Inicialização He (adequada para ReLU)
+    # Inicialização He
     for i in range(len(layers) - 1):
         w = np.random.randn(layers[i+1], layers[i]) * np.sqrt(2 / layers[i])
         b = np.zeros((layers[i+1], 1))
@@ -99,7 +95,6 @@ def MLP(X, Y, hidden_layers=[100, 100], learning_rate=1e-4, epocas_max=5000, act
     precisions.clear()
 
     for epoch in range(epocas_max):
-        # Forward pass
         activations = [X]
         zs = []
         for l in range(len(weights)):
@@ -113,19 +108,15 @@ def MLP(X, Y, hidden_layers=[100, 100], learning_rate=1e-4, epocas_max=5000, act
 
         y_pred = activations[-1]
 
-        # Cross-Entropy Loss
-        # Garantir estabilidade numérica
         loss = -np.mean(np.sum(Y * np.log(y_pred+1e-12), axis=0))
         losses.append(loss)
 
         # Backpropagation
-        deltas = [y_pred - Y]  # delta da camada de saída (softmax+CE simplifica)
-        # Camadas ocultas
+        deltas = [y_pred - Y] 
         for l in range(len(weights)-2, -1, -1):
             delta = np.dot(weights[l+1].T, deltas[0]) * relu_deriv(activations[l+1])
             deltas.insert(0, delta)
 
-        # Atualização
         for l in range(len(weights)):
             dw = np.dot(deltas[l], activations[l].T) / N
             db = np.mean(deltas[l], axis=1, keepdims=True)

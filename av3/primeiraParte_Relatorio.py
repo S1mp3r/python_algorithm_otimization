@@ -33,7 +33,7 @@ def plotar_matriz_confusao(matriz, titulo, acuracia, sensibilidade, especificida
 
 clear = lambda: os.system('cls')
 
-data = np.loadtxt("av3/spiral.csv", delimiter=",")
+data = np.loadtxt("spiral.csv", delimiter=",")
 x_raw = data[:, :2]
 x_raw = (x_raw - np.min(x_raw, axis=0)) / (np.max(x_raw, axis=0) - np.min(x_raw, axis=0))
 y_raw = data[:, 2].astype(int)
@@ -66,7 +66,7 @@ activation_tanh = 'tanh'
 
 clear()
 
-max_rounds = 2
+max_rounds = 500
 for rodada in range(max_rounds):
 
     print(f"RODADA ATUAL: {rodada+1} DE {max_rounds}")
@@ -77,10 +77,8 @@ for rodada in range(max_rounds):
     X_train, X_test = x_raw[train_idx], x_raw[test_idx]
     y_train, y_test = y_raw[train_idx], y_raw[test_idx]
 
-    # Ajustando y_test para {0, 1}
     y_test_bin = ((y_test + 1) // 2).astype(int)
 
-    # Ajustando y_test para {-1, 1}
     y_test_bin_negativo = 2 * y_test_bin - 1
 
 #================================================================================================================================================================================================
@@ -147,14 +145,12 @@ for rodada in range(max_rounds):
     clear()
 
 for modelo in acuracias:
-        # Encontrar a melhor rodada
     melhor_idx = np.argmax(acuracias[modelo])
     matriz_melhor = matrizes[modelo][melhor_idx]
     acuracia_melhor = acuracias[modelo][melhor_idx]
     especificidade_melhor = matriz_melhor[0][0] / (matriz_melhor[0][0] + matriz_melhor[0][1]) if (matriz_melhor[0][0] + matriz_melhor[0][1]) > 0 else 0
     sensibilidade_melhor = matriz_melhor[1][1] / (matriz_melhor[1][1] + matriz_melhor[1][0]) if (matriz_melhor[1][1] + matriz_melhor[1][0]) > 0 else 0
 
-    # Plotar a melhor matriz de confusão
     if modelo != "MLP - TAHN":
         plotar_matriz_confusao(
             matriz_melhor, 
@@ -174,14 +170,12 @@ for modelo in acuracias:
             labels=["-1", "1"]
         )
 
-    # Encontrar a pior rodada
     pior_idx = np.argmin(acuracias[modelo])
     matriz_pior = matrizes[modelo][pior_idx]
     acuracia_pior = acuracias[modelo][pior_idx]
     especificidade_pior = matriz_pior[0][0] / (matriz_pior[0][0] + matriz_pior[0][1]) if (matriz_pior[0][0] + matriz_pior[0][1]) > 0 else 0
     sensibilidade_pior = matriz_pior[1][1] / (matriz_pior[1][1] + matriz_pior[1][0]) if (matriz_pior[1][1] + matriz_pior[1][0]) > 0 else 0
 
-    # Plotar a pior matriz de confusão
     if modelo != "MLP - TAHN":
         plotar_matriz_confusao(
             matriz_pior, 
@@ -205,14 +199,9 @@ acuracia_mlp_tanh_test = acuracias["MLP - TANH"]
 especificidade_mlp_tanh_test = [m[0][0] / (m[0][0] + m[0][1]) if (m[0][0] + m[0][1]) > 0 else 0 for m in matrizes["MLP - TANH"]]
 sensibilidade_mlp_tanh_test = [m[1][1] / (m[1][1] + m[1][0]) if (m[1][1] + m[1][0]) > 0 else 0 for m in matrizes["MLP - TANH"]]
 
-# Extrair métricas de treinamento
 acuracia_mlp_tanh_train = acuracias_train["MLP - TANH"]
 especificidade_mlp_tanh_train = especificidades_train["MLP - TANH"]
 sensibilidade_mlp_tanh_train = sensibilidades_train["MLP - TANH"]
-
-# Análise de Underfitting e Overfitting
-# Underfitting: Baixa acurácia tanto no treinamento quanto no teste
-# Overfitting: Alta acurácia no treinamento e baixa no teste
 
 media_acuracia_train = np.mean(acuracia_mlp_tanh_train)
 media_acuracia_test = np.mean(acuracia_mlp_tanh_test)
@@ -224,11 +213,9 @@ elif media_acuracia_train - media_acuracia_test > 0.1:
 else:
     print("O modelo MLP - TANH está balanceado, sem sinais claros de underfitting ou overfitting.")
 
-# Definir as métricas a serem analisadas
 metrics = ['Acurácia', 'Sensibilidade', 'Especificidade']
 statistics = ['Média', 'Desvio-Padrão', 'Maior Valor', 'Menor Valor']
 
-# Inicializar uma lista para armazenar os dados da tabela
 table_data = []
 
 for modelo in acuracias:
@@ -256,12 +243,10 @@ for modelo in acuracias:
     esp_min = np.min(esp)
     table_data.append([modelo, 'Especificidade', f"{esp_mean:.4f}", f"{esp_std:.4f}", f"{esp_max:.4f}", f"{esp_min:.4f}"])
 
-# Criar um DataFrame para organizar os dados
 df_table = pd.DataFrame(table_data, columns=['Modelo', 'Métrica', 'Média', 'Desvio-Padrão', 'Maior Valor', 'Menor Valor'])
 
-# Plotar a tabela usando matplotlib
 fig, ax = plt.subplots(figsize=(12, 8))
-ax.axis('off')  # Remover eixos
+ax.axis('off')  
 table = ax.table(cellText=df_table.values,
                     colLabels=df_table.columns,
                     cellLoc='center',
@@ -272,10 +257,8 @@ table.scale(1, 1.5)
 plt.title('Estatísticas das Métricas dos Modelos', fontsize=14, pad=20)
 plt.show()
 
-# Definir o número de rodadas
 rodadas = np.arange(1, max_rounds + 1)
 
-# Inicializar dicionários para armazenar as métricas de teste e treinamento
 acuracias_test = {}
 acuracias_train_plot = {}
 
@@ -284,9 +267,8 @@ for modelo in acuracias:
     if modelo == "MLP - TANH":
         acuracias_train_plot[modelo] = acuracias_train[modelo]
     else:
-        acuracias_train_plot[modelo] = [None] * max_rounds  # Preencher com None para modelos sem treinamento
+        acuracias_train_plot[modelo] = [None] * max_rounds
 
-# Função para plotar a curva de aprendizado para Acurácia
 def plotar_curva_acuracia():
     plt.figure(figsize=(10, 6))
     for modelo in acuracias:
@@ -299,5 +281,4 @@ def plotar_curva_acuracia():
     plt.grid(True)
     plt.show()
 
-# Chamar a função de plotagem
 plotar_curva_acuracia()
